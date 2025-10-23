@@ -8,6 +8,7 @@ export default function MSQuoteGenerator() {
   const [isFixed, setIsFixed] = useState('no');
   const [solutionType, setSolutionType] = useState('');
   const [gradientType, setGradientType] = useState('');
+  const [PhosEnrich, setPhosEnrich] = useState('none');
   const [quote, setQuote] = useState(null);
 
   const generateQuote = () => {
@@ -105,24 +106,44 @@ export default function MSQuoteGenerator() {
         });
       }
       
-      // Gradient
-      if (gradientType === 'dda_lfq') {
-        quoteItems.push({
-          service: 'LCMSMS long gradient',
-          quantity: qty
-        });
-      } else if (gradientType === 'dia') {
-        quoteItems.push({
-          service: 'LCMSMS median gradient',
-          quantity: qty
-        });
-      }
-      
+    // Phospho TiO2 enrichment
+    if (PhosEnrich === 'Yes') {
       quoteItems.push({
-        service: 'Data analysis protein ID',
+        service: 'Sample_Prep_TiO2',
         quantity: qty
       });
-      
+    }
+
+    // Gradient - double quantity if phospho enrichment
+    const gradientMultiplier = PhosEnrich === 'Yes' ? 2 : 1;
+        //equivalent to: 
+        //let gradientMultiplier;  // declare variable
+        //if (PhosEnrich === 'Yes') {
+        //      gradientMultiplier = 2;  
+        //} else {
+        // gradientMultiplier = 1; 
+        //}
+
+    if (gradientType === 'dda_lfq') {
+      quoteItems.push({
+        service: 'LCMSMS long gradient',
+        quantity: qty * gradientMultiplier
+      });
+    } else if (gradientType === 'dia') {
+      quoteItems.push({
+        service: 'LCMSMS median gradient',
+        quantity: qty * gradientMultiplier
+      });
+    }
+
+    // Data analysis - double quantity if phospho enrichment, skip if gradientType is 'None'
+    if (gradientType !== 'None') {
+      quoteItems.push({
+        service: 'Data analysis protein ID',
+        quantity: qty * gradientMultiplier
+      });
+    }    
+
       quoteItems.push({
         service: 'Sample prep nanodrop',
         quantity: qty * 2
@@ -144,6 +165,7 @@ export default function MSQuoteGenerator() {
     setIsFixed('no');
     setSolutionType('');
     setGradientType('');
+    setPhosEnrich('none');
     setQuote(null);
   };
 
@@ -270,6 +292,20 @@ export default function MSQuoteGenerator() {
                       <option value="">Select gradient type</option>
                       <option value="dda_lfq">DDA LFQ (Long Gradient)</option>
                       <option value="dia">DIA (Median Gradient)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      TiO2 Phospho Enrichment *
+                    </label>
+                    <select
+                      value={PhosEnrich}
+                      onChange={(e) => setPhosEnrich(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value="Yes">Yes</option>
+                      <option value="None">None</option>
                     </select>
                   </div>
                 </>
