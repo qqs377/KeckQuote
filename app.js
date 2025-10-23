@@ -305,7 +305,7 @@ export default function MSQuoteGenerator() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     >
                       <option value="Yes">Yes</option>
-                      <option value="None">None</option>
+                      <option value="none">None</option>
                     </select>
                   </div>
                 </>
