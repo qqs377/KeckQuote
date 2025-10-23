@@ -53,6 +53,7 @@
       const [quantity, setQuantity] = useState('');
       const [stainType, setStainType] = useState('none');
       const [isFixed, setIsFixed] = useState('no');
+      const [isDestained, setIsDestained] = useState('no');
       const [solutionType, setSolutionType] = useState('');
       const [gradientType, setGradientType] = useState('');
       const [PhosEnrich, setPhosEnrich] = useState('none');
@@ -71,15 +72,20 @@
           let prepSimpleQty = 0;
           let needsFixation = 0;
           let needsDestaining = 0;
-          
-          if (stainType === 'silver') {
-            needsDestaining = qty;
-            if (isFixed === 'no') {
-              needsFixation = qty;
-            }
-          } else if (stainType === 'coomassie') {
+  
+        // Check if destaining is needed
+        if (isDestained === 'no') {
+          if (stainType === 'silver' || stainType === 'coomassie') {
             needsDestaining = qty;
           }
+        }
+  
+        // Check if fixation is needed (for silver and none, not coomassie)
+        if (isFixed === 'no') {
+          if (stainType === 'silver' || stainType === 'none') {
+            needsFixation = qty;
+          }
+        }
           
           const extraction = qty;
           const totalOps = needsFixation + needsDestaining + extraction;
@@ -132,6 +138,7 @@
         setQuantity('');
         setStainType('none');
         setIsFixed('no');
+        setIsDestained('no');
         setSolutionType('');
         setGradientType('');
         setPhosEnrich('none');
@@ -188,30 +195,40 @@
                       placeholder="Enter number of samples"
                     />
                   </div>
-
+                  
                   {sampleType === 'gel' && (
-                    <>
-                      <div className="form-group">
-                        <label className="label">Stain Type</label>
-                        <select value={stainType} onChange={(e) => setStainType(e.target.value)} className="select">
-                          <option value="none">None</option>
-                          <option value="silver">Silver Stain</option>
-                          <option value="coomassie">Coomassie Stain</option>
-                        </select>
-                      </div>
-
-                      {stainType === 'silver' && (
+                      <>
                         <div className="form-group">
-                          <label className="label">Has the sample been fixed?</label>
-                          <select value={isFixed} onChange={(e) => setIsFixed(e.target.value)} className="select">
-                            <option value="no">No</option>
-                            <option value="yes">Yes</option>
+                          <label className="label">Stain Type</label>
+                          <select value={stainType} onChange={(e) => setStainType(e.target.value)} className="select">
+                            <option value="none">None</option>
+                            <option value="silver">Silver Stain</option>
+                            <option value="coomassie">Coomassie Stain</option>
                           </select>
                         </div>
-                      )}
-                    </>
-                  )}
 
+                        {(stainType === 'silver' || stainType === 'coomassie') && (
+                          <div className="form-group">
+                            <label className="label">Has the sample been destained?</label>
+                            <select value={isDestained} onChange={(e) => setIsDestained(e.target.value)} className="select">
+                              <option value="no">No</option>
+                              <option value="yes">Yes</option>
+                            </select>
+                          </div>
+                        )}
+
+                        {(stainType === 'silver' || stainType === 'none') && (
+                          <div className="form-group">
+                            <label className="label">Has the sample been fixed?</label>
+                            <select value={isFixed} onChange={(e) => setIsFixed(e.target.value)} className="select">
+                              <option value="no">No</option>
+                              <option value="yes">Yes</option>
+                            </select>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  
                   {sampleType === 'solution' && (
                     <>
                       <div className="form-group">
