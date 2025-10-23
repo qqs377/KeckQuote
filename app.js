@@ -1,3 +1,6 @@
+//this file is not used to build the web
+//this file is just for logistics, same as the portion in index.html
+
 import React, { useState } from 'react';
 import { FileText, Download } from 'lucide-react';
 
