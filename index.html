@@ -6,10 +6,277 @@
   <title>MS Quote Generator</title>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+    .bg-gradient { min-height: 100vh; background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); padding: 2rem 1rem; }
+    .container { max-width: 48rem; margin: 0 auto; }
+    .card { background: white; border-radius: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); padding: 2rem; }
+    .header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .header svg { width: 2rem; height: 2rem; color: #4f46e5; }
+    .header h1 { font-size: 1.875rem; font-weight: 700; color: #1f2937; }
+    .form-group { margin-bottom: 1.5rem; }
+    .label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
+    .input, .select { width: 100%; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; }
+    .input:focus, .select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+    .btn { width: 100%; padding: 0.75rem 1.5rem; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #4f46e5; color: white; }
+    .btn-primary:hover:not(:disabled) { background: #4338ca; }
+    .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+    .btn-green { background: #16a34a; color: white; }
+    .btn-green:hover { background: #15803d; }
+    .btn-gray { background: #4b5563; color: white; }
+    .btn-gray:hover { background: #374151; }
+    .btn-group { display: flex; gap: 0.75rem; }
+    .btn-group .btn { flex: 1; }
+    .quote-title { font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; }
+    .quote-box { background: #f9fafb; border-radius: 0.5rem; padding: 1rem; border: 1px solid #e5e7eb; }
+    .table { width: 100%; }
+    .table th { text-align: left; padding: 0.5rem 0.75rem; font-weight: 600; color: #374151; border-bottom: 2px solid #d1d5db; }
+    .table th:last-child { text-align: right; }
+    .table td { padding: 0.5rem 0.75rem; color: #1f2937; border-bottom: 1px solid #e5e7eb; }
+    .table td:last-child { text-align: right; }
+    .table tr:last-child td { border-bottom: none; }
+    .footer { margin-top: 1.5rem; text-align: center; font-size: 0.875rem; color: #6b7280; }
+    .icon { display: inline-block; vertical-align: middle; margin-right: 0.5rem; }
+  </style>
 </head>
 <body>
   <div id="root"></div>
-  <script type="module" src="./app.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function MSQuoteGenerator() {
+      const [sampleType, setSampleType] = useState('');
+      const [quantity, setQuantity] = useState('');
+      const [stainType, setStainType] = useState('none');
+      const [isFixed, setIsFixed] = useState('no');
+      const [solutionType, setSolutionType] = useState('');
+      const [gradientType, setGradientType] = useState('');
+      const [quote, setQuote] = useState(null);
+
+      const generateQuote = () => {
+        const qty = parseInt(quantity);
+        if (!qty || qty <= 0) {
+          alert('Please enter a valid quantity');
+          return;
+        }
+
+        const quoteItems = [];
+
+        if (sampleType === 'gel') {
+          let prepSimpleQty = 0;
+          let needsFixation = 0;
+          let needsDestaining = 0;
+          
+          if (stainType === 'silver') {
+            needsDestaining = qty;
+            if (isFixed === 'no') {
+              needsFixation = qty;
+            }
+          } else if (stainType === 'coomassie') {
+            needsDestaining = qty;
+          }
+          
+          const extraction = qty;
+          const totalOps = needsFixation + needsDestaining + extraction;
+          prepSimpleQty = Math.max(1, Math.ceil(totalOps / 4));
+          
+          quoteItems.push({ service: 'Sample prep simple', quantity: prepSimpleQty });
+          quoteItems.push({ service: 'Sample prep Trypsin', quantity: qty });
+          quoteItems.push({ service: 'LCMSMS short gradient', quantity: qty });
+          quoteItems.push({ service: 'Data analysis protein ID', quantity: qty });
+          quoteItems.push({ service: 'Consulting', quantity: 0.25 });
+        } else if (sampleType === 'solution') {
+          if (solutionType === 'cell_pellet') {
+            quoteItems.push({ service: 'Sample prep complex', quantity: qty });
+            quoteItems.push({ service: 'Sample prep desalt', quantity: qty });
+            quoteItems.push({ service: 'Sample prep custom enzyme', quantity: qty });
+          } else if (solutionType === 'ip_pulldown' || solutionType === 'cell_lysates') {
+            quoteItems.push({ service: 'Sample prep simple', quantity: qty });
+            quoteItems.push({ service: 'Sample prep desalt', quantity: qty });
+            quoteItems.push({ service: 'Sample prep custom enzyme', quantity: qty });
+          } else if (solutionType === 'contaminants_strap') {
+            quoteItems.push({ service: 'Sample prep simple', quantity: qty });
+            quoteItems.push({ service: 'Sample prep desalt', quantity: qty });
+            quoteItems.push({ service: 'Sample prep Trypsin', quantity: qty });
+          }
+          
+          if (gradientType === 'dda_lfq') {
+            quoteItems.push({ service: 'LCMSMS long gradient', quantity: qty });
+          } else if (gradientType === 'dia') {
+            quoteItems.push({ service: 'LCMSMS median gradient', quantity: qty });
+          }
+          
+          quoteItems.push({ service: 'Data analysis protein ID', quantity: qty });
+          quoteItems.push({ service: 'Sample prep nanodrop', quantity: qty * 2 });
+          quoteItems.push({ service: 'Consulting', quantity: 0.25 });
+        }
+
+        setQuote(quoteItems);
+      };
+
+      const resetForm = () => {
+        setSampleType('');
+        setQuantity('');
+        setStainType('none');
+        setIsFixed('no');
+        setSolutionType('');
+        setGradientType('');
+        setQuote(null);
+      };
+
+      const downloadQuote = () => {
+        if (!quote) return;
+        
+        let csv = 'Service,Quantity\n';
+        quote.forEach(item => {
+          csv += `"${item.service}",${item.quantity}\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ms_quote.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      };
+
+      return (
+        <div className="bg-gradient">
+          <div className="container">
+            <div className="card">
+              <div className="header">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h1>MS Quote Generator</h1>
+              </div>
+
+              {!quote ? (
+                <div>
+                  <div className="form-group">
+                    <label className="label">Sample Type *</label>
+                    <select value={sampleType} onChange={(e) => setSampleType(e.target.value)} className="select">
+                      <option value="">Select sample type</option>
+                      <option value="gel">Gel Band</option>
+                      <option value="solution">Solution</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="label">Quantity of Samples *</label>
+                    <input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      min="1"
+                      className="input"
+                      placeholder="Enter number of samples"
+                    />
+                  </div>
+
+                  {sampleType === 'gel' && (
+                    <>
+                      <div className="form-group">
+                        <label className="label">Stain Type</label>
+                        <select value={stainType} onChange={(e) => setStainType(e.target.value)} className="select">
+                          <option value="none">None</option>
+                          <option value="silver">Silver Stain</option>
+                          <option value="coomassie">Coomassie Stain</option>
+                        </select>
+                      </div>
+
+                      {stainType === 'silver' && (
+                        <div className="form-group">
+                          <label className="label">Has the sample been fixed?</label>
+                          <select value={isFixed} onChange={(e) => setIsFixed(e.target.value)} className="select">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                          </select>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {sampleType === 'solution' && (
+                    <>
+                      <div className="form-group">
+                        <label className="label">Solution Sample Type *</label>
+                        <select value={solutionType} onChange={(e) => setSolutionType(e.target.value)} className="select">
+                          <option value="">Select solution type</option>
+                          <option value="cell_pellet">Cell Pellet (requires sonication)</option>
+                          <option value="ip_pulldown">Immunoprecipitation Pull-down</option>
+                          <option value="cell_lysates">Cell Lysates</option>
+                          <option value="contaminants_strap">Contaminants/Detergents/Salt (S-trap)</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="label">Gradient Type *</label>
+                        <select value={gradientType} onChange={(e) => setGradientType(e.target.value)} className="select">
+                          <option value="">Select gradient type</option>
+                          <option value="dda_lfq">DDA LFQ (Long Gradient)</option>
+                          <option value="dia">DIA (Median Gradient)</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+
+                  <button
+                    onClick={generateQuote}
+                    disabled={!sampleType || !quantity || (sampleType === 'solution' && (!solutionType || !gradientType))}
+                    className="btn btn-primary"
+                  >
+                    Generate Quote
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <h2 className="quote-title">Generated Quote</h2>
+                  <div className="quote-box">
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Service</th>
+                          <th>Quantity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {quote.map((item, idx) => (
+                          <tr key={idx}>
+                            <td>{item.service}</td>
+                            <td>{item.quantity}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="btn-group" style={{ marginTop: '1.5rem' }}>
+                    <button onClick={downloadQuote} className="btn btn-green">
+                      <span className="icon">⬇</span> Download CSV
+                    </button>
+                    <button onClick={resetForm} className="btn btn-gray">
+                      New Quote
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="footer">
+              <p>Mass Spectrometry Quote Generator v1.0</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<MSQuoteGenerator />, document.getElementById('root'));
+  </script>
 </body>
 </html>
